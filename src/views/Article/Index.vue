@@ -1,7 +1,6 @@
 <template>
 	<div class="mac-file-frame">
 		<!-- 页头 -->
-		<header class="mac-header">
 			<div class="page-title">文章管理</div>
 			<div class="window-controls">
 				<span class="circle yellow"></span>
