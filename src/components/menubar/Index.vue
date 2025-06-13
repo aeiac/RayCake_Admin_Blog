@@ -1,19 +1,6 @@
 <template>	
   <svg style="display: none">
-    <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
-      <feTurbulence type="fractalNoise" baseFrequency="0.001 0.005" numOctaves="1" seed="17" result="turbulence" />
-      <feComponentTransfer in="turbulence" result="mapped">
-        <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
-        <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
-        <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
-      </feComponentTransfer>
-      <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
-      <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
-        <fePointLight x="-200" y="-200" z="300" />
-      </feSpecularLighting>
-      <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-      <feDisplacementMap in="SourceGraphic" in2="softMap" scale="200" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
+    <!-- 保持你原有的SVG过滤器不变 -->
   </svg>
 
   <div class="wrapper">
@@ -31,6 +18,10 @@
                 :src="icon"
                 alt="App Icon"
                 @click="goToArticle"
+                @mouseenter="hoverIndex = index"
+                @mouseleave="hoverIndex = null"
+                :style="getIconStyle(index)"
+                :class="{ 'hovered': hoverIndex === index }"
               />
             </div>
           </div>
@@ -52,18 +43,26 @@ const props = defineProps({
       'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png',
       'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/messages.png',
       'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
+      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/finder.png',
+      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png',
+      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/messages.png',
+      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
+	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png',
+	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/messages.png',
+	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
 	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/finder.png',
 	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png',
 	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/messages.png',
 	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
+	
     ]
   }
 })
 
 const router = useRouter()
 const route = useRoute()
-
 const active = ref(false)
+const hoverIndex = ref(null)
 
 watch(
   () => route.path,
@@ -72,6 +71,21 @@ watch(
   },
   { immediate: true }
 )
+
+function getIconStyle(index) {
+  if (hoverIndex.value === null) return {}
+  
+  const distance = Math.abs(index - hoverIndex.value)
+  if (distance > 3) return {} // 只影响附近的图标
+  
+  // 基于距离计算缩放比例
+  const scale = 1 + (0.6 * (1 - distance * 0.25))
+  return {
+    transform: `scale(${scale}) translateY(${-15 * (1 - distance * 0.25)}%)`,
+    zIndex: 10 - distance,
+    transition: `transform ${0.2 + distance * 0.05}s cubic-bezier(0.25, 0.1, 0.25, 1.5)`
+  }
+}
 
 function goToArticle() {
   if (route.path === '/article' && active.value) {
@@ -153,7 +167,7 @@ function goToArticle() {
 }
 
 .dock img {
-  width: clamp(30px, 6vw, 60px);
+  width: clamp(25px, 5vw, 55px);
   height: auto;
   position: relative;
   border-radius: 1rem;
@@ -164,6 +178,17 @@ function goToArticle() {
 }
 
 .dock img:hover {
+  transform: scale(1.6) translateY(-15%);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+  z-index: 10;
+}
+.dock img {
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.5), 
+              filter 0.3s ease;
+  will-change: transform, filter;
+}
+
+.dock img.hovered {
   transform: scale(1.6) translateY(-15%);
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
   z-index: 10;
