@@ -41,12 +41,8 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-const router = useRouter()
-
-function goToArticle() {
-  router.push('/article')
-}
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const props = defineProps({
   icons: {
@@ -56,16 +52,38 @@ const props = defineProps({
       'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png',
       'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/messages.png',
       'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
-      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
-      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
-      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
-      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
-      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
-      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
+	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/finder.png',
+	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png',
+	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/messages.png',
+	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
     ]
   }
 })
+
+const router = useRouter()
+const route = useRoute()
+
+const active = ref(false)
+
+watch(
+  () => route.path,
+  (newPath) => {
+    active.value = (newPath === '/article')
+  },
+  { immediate: true }
+)
+
+function goToArticle() {
+  if (route.path === '/article' && active.value) {
+    router.push('/')
+    active.value = false
+  } else {
+    router.push('/article')
+    active.value = true
+  }
+}
 </script>
+
 
 <style scoped>
 .wrapper {
