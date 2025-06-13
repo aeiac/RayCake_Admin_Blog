@@ -1,6 +1,19 @@
-<template>	
+<template>
   <svg style="display: none">
-    <!-- 保持你原有的SVG过滤器不变 -->
+    <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feTurbulence type="fractalNoise" baseFrequency="0.001 0.005" numOctaves="1" seed="17" result="turbulence" />
+      <feComponentTransfer in="turbulence" result="mapped">
+        <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+        <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+        <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+      </feComponentTransfer>
+      <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+      <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+        <fePointLight x="-200" y="-200" z="300" />
+      </feSpecularLighting>
+      <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+      <feDisplacementMap in="SourceGraphic" in2="softMap" scale="200" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
   </svg>
 
   <div class="wrapper">
@@ -12,17 +25,20 @@
           <div class="liquidGlass-shine"></div>
           <div class="liquidGlass-text">
             <div class="dock">
-              <img
-                v-for="(icon, index) in icons"
-                :key="index"
-                :src="icon"
-                alt="App Icon"
-                @click="goToArticle"
-                @mouseenter="hoverIndex = index"
-                @mouseleave="hoverIndex = null"
-                :style="getIconStyle(index)"
-                :class="{ 'hovered': hoverIndex === index }"
-              />
+              <template v-for="(icon, index) in icons" :key="index">
+                <div class="icon-container">
+                  <img
+                    :src="icon"
+                    alt="App Icon"
+                    @click="() => handleClick(index)"
+                    @mouseenter="hoverIndex = index"
+                    @mouseleave="hoverIndex = null"
+                    :style="getIconStyle(index)"
+                    :class="{ hovered: hoverIndex === index }"
+                  />
+                  <div v-show="clickedIndices.includes(index)" class="dot-indicator"></div>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -47,14 +63,7 @@ const props = defineProps({
       'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png',
       'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/messages.png',
       'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
-	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png',
-	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/messages.png',
-	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
-	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/finder.png',
-	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png',
-	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/messages.png',
-	  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/notes.png',
-	
+      'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/map.png'
     ]
   }
 })
@@ -63,6 +72,7 @@ const router = useRouter()
 const route = useRoute()
 const active = ref(false)
 const hoverIndex = ref(null)
+const clickedIndices = ref([]) // 多个黑点
 
 watch(
   () => route.path,
@@ -74,17 +84,24 @@ watch(
 
 function getIconStyle(index) {
   if (hoverIndex.value === null) return {}
-  
   const distance = Math.abs(index - hoverIndex.value)
-  if (distance > 3) return {} // 只影响附近的图标
-  
-  // 基于距离计算缩放比例
+  if (distance > 3) return {}
   const scale = 1 + (0.6 * (1 - distance * 0.25))
   return {
     transform: `scale(${scale}) translateY(${-15 * (1 - distance * 0.25)}%)`,
     zIndex: 10 - distance,
     transition: `transform ${0.2 + distance * 0.05}s cubic-bezier(0.25, 0.1, 0.25, 1.5)`
   }
+}
+
+function handleClick(index) {
+  const i = clickedIndices.value.indexOf(index)
+  if (i > -1) {
+    clickedIndices.value.splice(i, 1) // 移除黑点
+  } else {
+    clickedIndices.value.push(index) // 添加黑点
+  }
+  goToArticle()
 }
 
 function goToArticle() {
@@ -98,13 +115,12 @@ function goToArticle() {
 }
 </script>
 
-
 <style scoped>
+/* 保留你的原样式不变 */
 .wrapper {
   position: fixed;
   bottom: 2vh;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -113,12 +129,10 @@ function goToArticle() {
 .liquidGlass-wrapper {
   position: relative;
   display: flex;
-  font-weight: 600;
   color: black;
   cursor: pointer;
   box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
-  width: auto;
   border-radius: 0 20px 20px 0;
   overflow: visible;
   z-index: 1;
@@ -158,12 +172,19 @@ function goToArticle() {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  flex-wrap: wrap;
   user-select: none;
   padding: 1vh 1vw;
   gap: clamp(1vw, 3vw, 40px);
   max-width: 95vw;
-  flex-wrap: wrap;
   touch-action: pan-x;
+}
+
+.icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 
 .dock img {
@@ -177,20 +198,18 @@ function goToArticle() {
   z-index: 1;
 }
 
-.dock img:hover {
-  transform: scale(1.6) translateY(-15%);
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
-  z-index: 10;
-}
-.dock img {
-  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.5), 
-              filter 0.3s ease;
-  will-change: transform, filter;
-}
-
 .dock img.hovered {
   transform: scale(1.6) translateY(-15%);
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
   z-index: 10;
+}
+
+.dot-indicator {
+  width: 6px;
+  height: 6px;
+  background-color: black;
+  border-radius: 50%;
+  margin-top: 5px;
+  transition: opacity 0.2s ease;
 }
 </style>

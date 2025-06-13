@@ -8,7 +8,7 @@
     >
       <transition name="slide-fade-smooth" mode="out-in">
         <router-view />
-		
+	
       </transition>
     </div>
     <Menubar />
