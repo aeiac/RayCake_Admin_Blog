@@ -1,55 +1,53 @@
 <template>
   <svg style="display: none">
     <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
-      <feTurbulence type="fractalNoise" baseFrequency="0.001 0.005" numOctaves="1" seed="17" result="turbulence" />
-      <feComponentTransfer in="turbulence" result="mapped">
-        <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
-        <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
-        <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
-      </feComponentTransfer>
-      <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
-      <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
-        <fePointLight x="-200" y="-200" z="300" />
-      </feSpecularLighting>
-      <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-      <feDisplacementMap in="SourceGraphic" in2="softMap" scale="200" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
+         <feTurbulence type="fractalNoise" baseFrequency="0.001 0.005" numOctaves="1" seed="17" result="turbulence" />
+         <feComponentTransfer in="turbulence" result="mapped">
+           <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+           <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+           <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+         </feComponentTransfer>
+         <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+         <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+           <fePointLight x="-200" y="-200" z="300" />
+         </feSpecularLighting>
+         <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+         <feDisplacementMap in="SourceGraphic" in2="softMap" scale="200" xChannelSelector="R" yChannelSelector="G" />
+       </filter>
   </svg>
 
   <div class="wrapper">
-    <a :href="link" target="_blank">
-      <div class="liquidGlass-wrapper">
-        <div class="liquidGlass-inner">
-          <div class="liquidGlass-effect"></div>
-          <div class="liquidGlass-tint"></div>
-          <div class="liquidGlass-shine"></div>
-          <div class="liquidGlass-text">
-            <div class="dock">
-              <template v-for="(icon, index) in icons" :key="index">
-                <div class="icon-container">
-                  <img
-                    :src="icon"
-                    alt="App Icon"
-                    @click="() => handleClick(index)"
-                    @mouseenter="hoverIndex = index"
-                    @mouseleave="hoverIndex = null"
-                    :style="getIconStyle(index)"
-                    :class="{ hovered: hoverIndex === index }"
-                  />
-                  <div v-show="clickedIndices.includes(index)" class="dot-indicator"></div>
-                </div>
-              </template>
-            </div>
+    <!-- 去掉了 <a> 包裹，改成普通 div -->
+    <div class="liquidGlass-wrapper">
+      <div class="liquidGlass-inner">
+        <div class="liquidGlass-effect"></div>
+        <div class="liquidGlass-tint"></div>
+        <div class="liquidGlass-shine"></div>
+        <div class="liquidGlass-text">
+          <div class="dock">
+            <template v-for="(icon, index) in icons" :key="index">
+              <div class="icon-container">
+                <img
+                  :src="icon"
+                  alt="App Icon"
+                  @click="handleClick(index)" 
+                  @mouseenter="hoverIndex = index"
+                  @mouseleave="hoverIndex = null"
+                  :style="getIconStyle(index)"
+                  :class="{ hovered: hoverIndex === index }"
+                />
+                <div v-show="clickedIndices.includes(index)" class="dot-indicator"></div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
-    </a>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
 
 const props = defineProps({
   icons: {
@@ -68,19 +66,10 @@ const props = defineProps({
   }
 })
 
-const router = useRouter()
-const route = useRoute()
-const active = ref(false)
-const hoverIndex = ref(null)
-const clickedIndices = ref([]) // 多个黑点
+const emit = defineEmits(['icon-click'])  // 新增：对外抛事件
 
-watch(
-  () => route.path,
-  (newPath) => {
-    active.value = (newPath === '/article')
-  },
-  { immediate: true }
-)
+const hoverIndex = ref(null)
+const clickedIndices = ref([])
 
 function getIconStyle(index) {
   if (hoverIndex.value === null) return {}
@@ -97,21 +86,11 @@ function getIconStyle(index) {
 function handleClick(index) {
   const i = clickedIndices.value.indexOf(index)
   if (i > -1) {
-    clickedIndices.value.splice(i, 1) // 移除黑点
+    clickedIndices.value.splice(i, 1)
   } else {
-    clickedIndices.value.push(index) // 添加黑点
+    clickedIndices.value.push(index)
   }
-  goToArticle()
-}
-
-function goToArticle() {
-  if (route.path === '/article' && active.value) {
-    router.push('/')
-    active.value = false
-  } else {
-    router.push('/article')
-    active.value = true
-  }
+  emit('icon-click', index)  // 抛出事件给父组件
 }
 </script>
 

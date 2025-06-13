@@ -8,7 +8,7 @@
 
 			<!-- 右侧内容 -->
 			<el-main class="article-main">
-				<!-- 页头 -->
+	<!-- 			页头
 				<header class="mac-header">
 					<div class="page-title">文章管理</div>
 					<div class="window-controls">
@@ -16,7 +16,7 @@
 						<span class="circle green"></span>
 						<span class="circle red" @click="goToArticle"></span>
 					</div>
-				</header>
+				</header> -->
 
 				<!-- 搜索与新增 -->
 				<el-input v-model="searchKeyword" placeholder="搜索文章标题" clearable @clear="fetchArticles"
