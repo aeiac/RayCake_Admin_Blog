@@ -18,6 +18,9 @@
         <component :is="component" />
       </Suspense>
     </div>
+
+    <!-- 缩放控制点 -->
+    <div v-for="dir in directions" :key="dir" class="resize-handle" :class="dir" @mousedown.prevent="startResize($event, dir)" />
   </div>
 </template>
 
@@ -26,7 +29,7 @@ import { ref, onMounted } from 'vue'
 
 const props = defineProps({
   component: Object,
-  title: String,
+  title: String
 })
 
 const pos = ref({ x: 100, y: 100 })
@@ -36,41 +39,45 @@ const height = ref(320)
 const isMinimized = ref(false)
 const isMaximized = ref(false)
 
-// 用于保存最大化前的位置和尺寸，方便还原
 let savedPos = null
 let savedWidth = null
 let savedHeight = null
 
-let startX = 0
-let startY = 0
-let dragging = false
+const directions = [
+  'top', 'bottom', 'left', 'right',
+  'topleft', 'topright', 'bottomleft', 'bottomright'
+]
 
-function updateWindowSize() {
+function toggleMinimize() {
+  isMinimized.value = !isMinimized.value
+}
+
+function toggleMaximize() {
   const vw = window.innerWidth
   const vh = window.innerHeight
 
-  if (isMaximized.value) {
-    width.value = vw
-    height.value = vh
+  if (!isMaximized.value) {
+    savedPos = { ...pos.value }
+    savedWidth = width.value
+    savedHeight = height.value
     pos.value.x = 0
     pos.value.y = 0
+    width.value = vw
+    height.value = vh
+    isMaximized.value = true
+    isMinimized.value = false
   } else {
-    width.value = Math.min(460, vw * 0.9)
-    height.value = Math.min(320, vh * 0.8)
-
-    if (pos.value.x + width.value > vw) {
-      pos.value.x = vw - width.value - 20
-    }
-    if (pos.value.y + height.value > vh) {
-      pos.value.y = vh - height.value - 20
-    }
-    if (pos.value.x < 0) pos.value.x = 20
-    if (pos.value.y < 0) pos.value.y = 20
+    pos.value = savedPos
+    width.value = savedWidth
+    height.value = savedHeight
+    isMaximized.value = false
   }
 }
 
+// 拖动
+let startX = 0, startY = 0, dragging = false
 function startDrag(e) {
-  if (isMaximized.value || isMinimized.value) return // 最大化或最小化时禁用拖拽
+  if (isMaximized.value || isMinimized.value) return
   startX = e.clientX - pos.value.x
   startY = e.clientY - pos.value.y
   dragging = true
@@ -80,16 +87,12 @@ function startDrag(e) {
 
 function onDrag(e) {
   if (!dragging) return
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-
+  const vw = window.innerWidth, vh = window.innerHeight
   let newX = e.clientX - startX
   let newY = e.clientY - startY
 
-  if (newX < 0) newX = 0
-  if (newY < 0) newY = 0
-  if (newX + width.value > vw) newX = vw - width.value
-  if (newY + height.value > vh) newY = vh - height.value
+  newX = Math.max(0, Math.min(newX, vw - width.value))
+  newY = Math.max(0, Math.min(newY, vh - height.value))
 
   pos.value.x = newX
   pos.value.y = newY
@@ -101,74 +104,75 @@ function stopDrag() {
   window.removeEventListener('mouseup', stopDrag)
 }
 
-function toggleMinimize() {
-  isMinimized.value = !isMinimized.value
+// 缩放
+let resizing = false
+let resizeStartX = 0
+let resizeStartY = 0
+let resizeDir = ''
+function startResize(e, dir) {
+  if (isMaximized.value) return
+  resizing = true
+  resizeStartX = e.clientX
+  resizeStartY = e.clientY
+  savedWidth = width.value
+  savedHeight = height.value
+  savedPos = { ...pos.value }
+  resizeDir = dir
+  window.addEventListener('mousemove', onResize)
+  window.addEventListener('mouseup', stopResize)
 }
 
-function toggleMaximize() {
-  const vw = window.innerWidth
-  const vh = window.innerHeight
+function onResize(e) {
+  if (!resizing) return
+  const dx = e.clientX - resizeStartX
+  const dy = e.clientY - resizeStartY
 
-  if (!isMaximized.value) {
-    // 记录当前状态，方便还原
-    savedPos = { ...pos.value }
-    savedWidth = width.value
-    savedHeight = height.value
-
-    pos.value.x = 0
-    pos.value.y = 0
-    width.value = vw
-    height.value = vh
-    isMaximized.value = true
-    isMinimized.value = false
-  } else {
-    // 还原之前状态
-    if (savedPos) {
-      pos.value = savedPos
-      width.value = savedWidth
-      height.value = savedHeight
-    }
-    isMaximized.value = false
+  if (resizeDir.includes('right')) {
+    width.value = Math.max(300, savedWidth + dx)
+  }
+  if (resizeDir.includes('left')) {
+    const newWidth = Math.max(300, savedWidth - dx)
+    width.value = newWidth
+    pos.value.x = savedPos.x + (savedWidth - newWidth)
+  }
+  if (resizeDir.includes('bottom')) {
+    height.value = Math.max(200, savedHeight + dy)
+  }
+  if (resizeDir.includes('top')) {
+    const newHeight = Math.max(200, savedHeight - dy)
+    height.value = newHeight
+    pos.value.y = savedPos.y + (savedHeight - newHeight)
   }
 }
 
+function stopResize() {
+  resizing = false
+  window.removeEventListener('mousemove', onResize)
+  window.removeEventListener('mouseup', stopResize)
+}
+
 onMounted(() => {
-  // 设置为屏幕 50%
   const vw = window.innerWidth
   const vh = window.innerHeight
-  width.value = vw / 1.6
-  height.value = vh / 1.6
-
-  // 居中
+  width.value = vw * 0.5
+  height.value = vh * 0.5
   pos.value.x = (vw - width.value) / 2
   pos.value.y = (vh - height.value) / 2
-
-  window.addEventListener('resize', () => {
-    if (isMaximized.value) {
-      width.value = window.innerWidth
-      height.value = window.innerHeight
-    } else {
-      updateWindowSize()
-    }
-  })
 })
 </script>
 
 <style scoped>
 .window {
   position: absolute;
-  background: rgba(255 255 255 / 0.8);
+  background: rgba(255 255 255 / 0.9);
   backdrop-filter: saturate(180%) blur(20px);
   border-radius: 14px;
-  box-shadow:
-    0 8px 32px 0 rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255 255 255 / 0.18);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.15);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   user-select: none;
-  -webkit-user-select: none;
-  transition: width 0.3s ease, height 0.3s ease, top 0.1s, left 0.1s, border-radius 0.3s ease;
+  transition: width 0.2s, height 0.2s;
 }
 
 .window.maximized {
@@ -180,50 +184,33 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 0 14px;
-  background: rgba(242 242 247 / 0.85);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(242 242 247 / 0.9);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
   cursor: grab;
-  position: relative;
 }
 
 .window-controls {
   display: flex;
   gap: 8px;
   width: 60px;
-  align-items: center;
 }
 
 .window-controls span {
-  display: inline-block;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  cursor: pointer;
   box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
 }
 
 .window-controls .close {
   background: #ff5f56;
 }
-
-.window-controls .close:hover {
-  background: #bf4943;
-}
-
 .window-controls .minimize {
   background: #ffbd2e;
 }
-
-.window-controls .minimize:hover {
-  background: #bfa72a;
-}
-
 .window-controls .maximize {
   background: #27c93f;
-}
-
-.window-controls .maximize:hover {
-  background: #1f9934;
 }
 
 .title {
@@ -232,15 +219,61 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 500;
   color: #3c3c4399;
-  user-select: none;
   pointer-events: none;
 }
 
 .content {
   flex: 1;
   overflow: auto;
-  background: rgba(255 255 255 / 0.95);
-  border-radius: 0 0 14px 14px;
-  user-select: text;
+  background: white;
+}
+
+/* 缩放控制点样式 */
+.resize-handle {
+  position: absolute;
+  z-index: 10;
+}
+
+.top, .bottom {
+  height: 6px;
+  left: 0;
+  right: 0;
+  cursor: ns-resize;
+}
+.top { top: -3px; }
+.bottom { bottom: -3px; }
+
+.left, .right {
+  width: 6px;
+  top: 0;
+  bottom: 0;
+  cursor: ew-resize;
+}
+.left { left: -3px; }
+.right { right: -3px; }
+
+.topleft, .topright, .bottomleft, .bottomright {
+  width: 10px;
+  height: 10px;
+}
+.topleft {
+  top: -5px;
+  left: -5px;
+  cursor: nwse-resize;
+}
+.topright {
+  top: -5px;
+  right: -5px;
+  cursor: nesw-resize;
+}
+.bottomleft {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+.bottomright {
+  bottom: -5px;
+  right: -5px;
+  cursor: nwse-resize;
 }
 </style>

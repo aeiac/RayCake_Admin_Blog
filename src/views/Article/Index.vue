@@ -287,7 +287,6 @@
 	.mac-file-frame {
 		width: auto;
 		height: 100%;
-		border-radius: 20px;
 		background: #f5f5f7;
 		display: flex;
 		overflow: hidden;
@@ -345,7 +344,6 @@
 
 	/* 弹窗 */
 	.el-dialog {
-		border-radius: 20px;
 		box-shadow:
 			0 20px 40px rgba(0, 0, 0, 0.1);
 		font-size: 15px;
