@@ -285,11 +285,10 @@
 
 <style scoped>
 	.mac-file-frame {
-		width: 95%;
-		height: 90vh;
+		width: auto;
+		height: 100%;
 		border-radius: 20px;
 		background: #f5f5f7;
-/* 		margin: 30px auto; */
 		display: flex;
 		overflow: hidden;
 		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -399,17 +398,16 @@
 	}
 
 	/* Tree 侧边栏 */
-.tree-aside {
-  background: #f7f7fa;
-  min-width: 120px; /* 设置一个最小宽度 */
-  width: auto;      /* 宽度由内容决定 */
-  max-width: 100%;  /* 防止撑破容器 */
-  border-radius: 20px 0 0 20px;
-  padding: 20px;
-  box-shadow: inset -8px 0 12px -8px rgba(0, 0, 0, 0.08);
-  box-sizing: border-box; /* 确保 padding 不额外撑大宽度 */
-  display: inline-block;  /* 或 flex 子项时使用 flex: 0 1 auto */
-}
+	.tree-aside {
+	  background: #f7f7fa;
+	  min-width: 120px; /* 设置一个最小宽度 */
+	  width: auto;      /* 宽度由内容决定 */
+	  max-width: 100%;  /* 防止撑破容器 */
+	  border-radius: 20px 0 0 20px;
+	  padding: 20px;
+	  box-sizing: border-box; /* 确保 padding 不额外撑大宽度 */
+	  display: inline-block;  /* 或 flex 子项时使用 flex: 0 1 auto */
+	}
 
 	/* 选中状态 */
 	.el-tree-node.is-current .el-tree-node__content {

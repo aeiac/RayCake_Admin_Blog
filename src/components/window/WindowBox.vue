@@ -1,6 +1,7 @@
 <template>
   <div
     class="window"
+    :class="{ maximized: isMaximized }"
     :style="{ top: pos.y + 'px', left: pos.x + 'px', width: width + 'px', height: height + 'px' }"
   >
     <div class="header" @mousedown.stop.prevent="startDrag">
@@ -151,7 +152,6 @@ onMounted(() => {
     }
   })
 })
-
 </script>
 
 <style scoped>
@@ -168,7 +168,11 @@ onMounted(() => {
   flex-direction: column;
   user-select: none;
   -webkit-user-select: none;
-  transition: width 0.3s ease, height 0.3s ease, top 0.1s, left 0.1s;
+  transition: width 0.3s ease, height 0.3s ease, top 0.1s, left 0.1s, border-radius 0.3s ease;
+}
+
+.window.maximized {
+  border-radius: 0 !important;
 }
 
 .header {
@@ -235,7 +239,6 @@ onMounted(() => {
 .content {
   flex: 1;
   overflow: auto;
-  padding: 12px;
   background: rgba(255 255 255 / 0.95);
   border-radius: 0 0 14px 14px;
   user-select: text;
