@@ -20,7 +20,13 @@
     </div>
 
     <!-- 缩放控制点 -->
-    <div v-for="dir in directions" :key="dir" class="resize-handle" :class="dir" @mousedown.prevent="startResize($event, dir)" />
+    <div
+      v-for="dir in directions"
+      :key="dir"
+      class="resize-handle"
+      :class="dir"
+      @mousedown.prevent="startResize($event, dir)"
+    />
   </div>
 </template>
 
@@ -87,12 +93,17 @@ function startDrag(e) {
 
 function onDrag(e) {
   if (!dragging) return
-  const vw = window.innerWidth, vh = window.innerHeight
+  const vw = window.innerWidth
+  const vh = window.innerHeight
   let newX = e.clientX - startX
   let newY = e.clientY - startY
 
-  newX = Math.max(0, Math.min(newX, vw - width.value))
-  newY = Math.max(0, Math.min(newY, vh - height.value))
+  // 支持半边隐藏：可拖出窗口一半宽度/高度
+  const maxOverflowX = width.value * 0.5
+  const maxOverflowY = height.value * 0.5
+
+  newX = Math.max(-maxOverflowX, Math.min(newX, vw - width.value + maxOverflowX))
+  newY = Math.max(-maxOverflowY, Math.min(newY, vh - height.value + maxOverflowY))
 
   pos.value.x = newX
   pos.value.y = newY
