@@ -8,15 +8,6 @@
 
 			<!-- 右侧内容 -->
 			<el-main class="article-main">
-	<!-- 			页头
-				<header class="mac-header">
-					<div class="page-title">文章管理</div>
-					<div class="window-controls">
-						<span class="circle yellow"></span>
-						<span class="circle green"></span>
-						<span class="circle red" @click="goToArticle"></span>
-					</div>
-				</header> -->
 
 				<!-- 搜索与新增 -->
 				<el-input v-model="searchKeyword" placeholder="搜索文章标题" clearable @clear="fetchArticles"
@@ -287,10 +278,6 @@
 			.catch(() => {})
 	}
 
-	function goToArticle() {
-		router.push('/')
-	}
-
 	onMounted(() => {
 		fetchArticles()
 	})
@@ -302,68 +289,11 @@
 		height: 90vh;
 		border-radius: 20px;
 		background: #f5f5f7;
-		margin: 30px auto;
+/* 		margin: 30px auto; */
 		display: flex;
 		overflow: hidden;
 		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 		color: #1d1d1f;
-	}
-
-	.mac-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 12px 20px;
-		background: #f8f8f8;
-		border-radius: 20px 20px 0 0;
-		user-select: none;
-		margin-bottom: 24px;
-		box-shadow:
-			inset 0 1px 0 #fff,
-			0 1px 3px rgba(0, 0, 0, 0.1);
-	}
-
-	.page-title {
-		font-size: 1.5rem;
-		font-weight: 600;
-		color: #1d1d1f;
-		letter-spacing: 0.03em;
-	}
-
-	.window-controls {
-		display: flex;
-		gap: 12px;
-	}
-
-	.circle {
-		width: 16px;
-		height: 16px;
-		border-radius: 50%;
-		display: inline-block;
-		cursor: pointer;
-		box-shadow:
-			inset 0 1px 2px rgba(255, 255, 255, 0.7),
-			0 2px 4px rgba(0, 0, 0, 0.1);
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
-	}
-
-	.circle:hover {
-		transform: scale(1.15);
-		box-shadow:
-			inset 0 1px 2px rgba(255, 255, 255, 0.9),
-			0 4px 8px rgba(0, 0, 0, 0.15);
-	}
-
-	.red {
-		background: #ff605c;
-	}
-
-	.yellow {
-		background: #ffbd44;
-	}
-
-	.green {
-		background: #28ca41;
 	}
 
 	/* 搜索输入框 */
@@ -469,14 +399,17 @@
 	}
 
 	/* Tree 侧边栏 */
-	.tree-aside {
-		background: #f7f7fa;
-		width: 200px;
-		border-radius: 20px 0 0 20px;
-		padding: 20px 0;
-		box-shadow: inset -8px 0 12px -8px rgba(0, 0, 0, 0.08);
-		/* 右侧内阴影 */
-	}
+.tree-aside {
+  background: #f7f7fa;
+  min-width: 120px; /* 设置一个最小宽度 */
+  width: auto;      /* 宽度由内容决定 */
+  max-width: 100%;  /* 防止撑破容器 */
+  border-radius: 20px 0 0 20px;
+  padding: 20px;
+  box-shadow: inset -8px 0 12px -8px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box; /* 确保 padding 不额外撑大宽度 */
+  display: inline-block;  /* 或 flex 子项时使用 flex: 0 1 auto */
+}
 
 	/* 选中状态 */
 	.el-tree-node.is-current .el-tree-node__content {
