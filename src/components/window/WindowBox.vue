@@ -132,10 +132,18 @@ function toggleMaximize() {
 }
 
 onMounted(() => {
-  updateWindowSize()
+  // 设置为屏幕 50%
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  width.value = vw / 1.6
+  height.value = vh / 1.6
+
+  // 居中
+  pos.value.x = (vw - width.value) / 2
+  pos.value.y = (vh - height.value) / 2
+
   window.addEventListener('resize', () => {
     if (isMaximized.value) {
-      // 最大化时窗口大小随视口调整
       width.value = window.innerWidth
       height.value = window.innerHeight
     } else {
@@ -143,6 +151,7 @@ onMounted(() => {
     }
   })
 })
+
 </script>
 
 <style scoped>
