@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineAsyncComponent } from 'vue'
+import { ref, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import VerticalMenu from '../../components/menubar/VerticalMenu.vue'
 
 const treeData = ref([
@@ -9,16 +9,35 @@ const treeData = ref([
     component: defineAsyncComponent(() => import('./components/ArticleList.vue'))
   },
   {
-    label: '文章数据',
+    label: '文章创作',
     id: 1,
-    component: defineAsyncComponent(() => import('./components/ArticleList.vue'))
+    component: defineAsyncComponent(() => import('./components/WriteArticle.vue'))
   }
 ])
 
 const defaultProps = { children: 'children', label: 'label' }
-
-// 默认加载第一条组件
 const currentComponent = ref(treeData.value[0].component)
+
+// 响应式宽度，默认200px
+const asideWidth = ref('200px')
+
+function updateWidth() {
+  const w = window.innerWidth
+  if (w < 768) {
+    asideWidth.value = '80px'  // 小屏窄一点
+  } else {
+    asideWidth.value = '200px' // 大屏正常宽度
+  }
+}
+
+onMounted(() => {
+  updateWidth()
+  window.addEventListener('resize', updateWidth)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateWidth)
+})
 
 function handleTreeClick(data) {
   currentComponent.value = data.component || null
@@ -26,9 +45,9 @@ function handleTreeClick(data) {
 </script>
 
 <template>
-  <div class="mac-file-frame">
+  <div class="mac-file-frame" style="height: 100vh;">
     <el-container style="height: 100%">
-      <el-aside class="tree-aside">
+      <el-aside :style="{ width: asideWidth }" class="tree-aside">
         <VerticalMenu
           :treeData="treeData"
           :defaultProps="defaultProps"
@@ -36,9 +55,16 @@ function handleTreeClick(data) {
         />
       </el-aside>
 
-      <el-main class="article-main">
+      <el-main class="article-main" style="padding: 12px;">
         <component v-if="currentComponent" :is="currentComponent" />
       </el-main>
     </el-container>
   </div>
 </template>
+
+<style scoped>
+.tree-aside {
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+</style>

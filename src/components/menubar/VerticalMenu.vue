@@ -77,11 +77,11 @@ function onCollapse(data, node, comp) {
 }
 
 .el-tree-node__content:hover {
-  background-color: #e5f0ff;
-  color: #007aff;
+  background-color: #333;
+  color: #fff;
   cursor: pointer;
   transform: translateY(-1px);
-  box-shadow: 0 1px 4px rgba(0, 122, 255, 0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .el-tree-node.is-current > .el-tree-node__content {

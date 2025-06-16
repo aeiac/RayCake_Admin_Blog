@@ -4,7 +4,11 @@
     :class="{ maximized: isMaximized }"
     :style="{ top: pos.y + 'px', left: pos.x + 'px', width: width + 'px', height: height + 'px' }"
   >
-    <div class="header" @mousedown.stop.prevent="startDrag">
+    <div
+      class="header"
+      @mousedown.stop.prevent="startDrag"
+      @dblclick="onHeaderDblClick"
+    >
       <div class="window-controls">
         <span class="close" @click="handleClose"></span>
         <span class="minimize" @click="toggleMinimize"></span>
@@ -13,13 +17,13 @@
       <div class="title">{{ title }}</div>
       <div style="width: 60px;"></div>
     </div>
+
     <div class="content" v-show="!isMinimized">
       <Suspense>
         <component :is="component" />
       </Suspense>
     </div>
 
-    <!-- 缩放控制点 -->
     <div
       v-for="dir in directions"
       :key="dir"
@@ -88,6 +92,11 @@ function toggleMaximize() {
     height.value = savedHeight
     isMaximized.value = false
   }
+}
+
+// 双击标题栏最大化或还原
+function onHeaderDblClick() {
+  if (!isMinimized.value) toggleMaximize()
 }
 
 let startX = 0, startY = 0, dragging = false
@@ -173,12 +182,10 @@ onMounted(() => {
   pos.value = { ...props.initialPos }
   const vw = window.innerWidth
   const vh = window.innerHeight
-  // 初始化窗口尺寸为屏幕一半
   width.value = vw * 0.5
   height.value = vh * 0.5
 })
 
-// 如果父组件传入的初始位置变了，更新位置（可选）
 watch(() => props.initialPos, (newVal) => {
   pos.value = { ...newVal }
 })
