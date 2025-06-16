@@ -15,6 +15,10 @@ const pageMap = {
   0: {
     title: '文章管理',
     component: defineAsyncComponent(() => import('../views/Article/Index.vue'))
+  },
+  1: {
+    title: 'Xx管理',
+    component: defineAsyncComponent(() => import('../views/Article/Index.vue'))
   }
 }
 
@@ -60,6 +64,14 @@ function closeWindow(id) {
   }
   windows.value = windows.value.filter(w => w.id !== id)
 }
+
+// 点击窗口，把该窗口移动到最上层（数组最后）
+function bringToFront(id) {
+  const index = windows.value.findIndex(w => w.id === id)
+  if (index === -1) return
+  const win = windows.value.splice(index, 1)[0]
+  windows.value.push(win) // 放到最后，渲染时层级最高
+}
 </script>
 
 <template>
@@ -69,6 +81,7 @@ function closeWindow(id) {
       :title="win.title"
       :component="win.component"
       @close="closeWindow(win.id)"
+      @mousedown.native.prevent="bringToFront(win.id)"
     />
   </div>
 
