@@ -103,7 +103,7 @@ function toggleMaximize(id) {
     @icon-close="closeWindow"
   />
 </template>
-<style scoped>
+<style>
 	html,
 	body,
 	#app {
