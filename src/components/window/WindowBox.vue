@@ -31,11 +31,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 
 const props = defineProps({
   component: Object,
-  title: String
+  title: String,
+  initialPos: {
+    type: Object,
+    default: () => ({ x: 100, y: 100 })
+  }
 })
 
 const emit = defineEmits(['close'])
@@ -166,12 +170,17 @@ function stopResize() {
 }
 
 onMounted(() => {
+  pos.value = { ...props.initialPos }
   const vw = window.innerWidth
   const vh = window.innerHeight
+  // 初始化窗口尺寸为屏幕一半
   width.value = vw * 0.5
   height.value = vh * 0.5
-  pos.value.x = (vw - width.value) / 2
-  pos.value.y = (vh - height.value) / 2
+})
+
+// 如果父组件传入的初始位置变了，更新位置（可选）
+watch(() => props.initialPos, (newVal) => {
+  pos.value = { ...newVal }
 })
 </script>
 

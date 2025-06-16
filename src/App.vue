@@ -9,19 +9,6 @@
 </template>
 
 <style>
-	html,
-	body,
-	#app {
-		height: 100%;
-		margin: 0;
-		padding: 0;
-		overflow: hidden;
-		background: url("https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/flowers.jpg")
-		  center center;
-		background-size: 400px;
-		
-	}
-
 	/* 全局隐藏滚动条 */
 	::-webkit-scrollbar {
 		width: 0px;

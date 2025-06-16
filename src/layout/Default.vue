@@ -3,14 +3,10 @@ import { ref, defineAsyncComponent } from 'vue'
 import Menubar from '../components/menubar/Index.vue'
 import WindowBox from '../components/window/WindowBox.vue'
 
-// 窗口列表
 const windows = ref([])
 let idCount = 0
-
-// 图标点击状态，用于显示小黑点
 const clickedIndices = ref([])
 
-// 页面映射，使用 defineAsyncComponent 明确静态路径（避免动态导入错误）
 const pageMap = {
   0: {
     title: '文章管理',
@@ -22,18 +18,15 @@ const pageMap = {
   }
 }
 
-// 通过索引找当前窗口是否已存在
 function findWindowByIndex(index) {
   const page = pageMap[index]
   return windows.value.find(w => w.title === page?.title)
 }
 
-// 通过 title 找对应索引
 function findIndexByTitle(title) {
   return Object.entries(pageMap).find(([index, page]) => page.title === title)?.[0]
 }
 
-// 切换窗口（打开或关闭）
 function toggleWindow(index) {
   const page = pageMap[index]
   if (!page) return
@@ -42,25 +35,25 @@ function toggleWindow(index) {
   if (existing) {
     closeWindow(existing.id)
   } else {
-    // 计算偏移，向左偏移 7% + 每个新窗口向右偏移 10%
+    // 新窗口位置，左偏移起点 7vw + 每打开窗口10vw递增，top 每开一个窗口下移2vh
     const leftOffset = 7 + windows.value.length * 10
-    // 向下偏移 2% * 窗口数
-    const topOffset = windows.value.length * 5
+    const topOffset = windows.value.length * 2
 
     windows.value.push({
       id: ++idCount,
       title: page.title,
       component: page.component,
       left: leftOffset,
-      top: topOffset
+      top: topOffset,
+      maximized: false
     })
+
     if (!clickedIndices.value.includes(index)) {
       clickedIndices.value.push(index)
     }
   }
 }
 
-// 关闭窗口
 function closeWindow(id) {
   const win = windows.value.find(w => w.id === id)
   if (!win) return
@@ -72,42 +65,54 @@ function closeWindow(id) {
   windows.value = windows.value.filter(w => w.id !== id)
 }
 
-// 点击窗口，把该窗口移动到最上层（数组最后）
 function bringToFront(id) {
-  const index = windows.value.findIndex(w => w.id === id)
-  if (index === -1) return
-  const win = windows.value.splice(index, 1)[0]
+  const idx = windows.value.findIndex(w => w.id === id)
+  if (idx === -1) return
+  const win = windows.value.splice(idx, 1)[0]
   windows.value.push(win)
+}
+
+function toggleMaximize(id) {
+  windows.value.forEach(w => {
+    if (w.id === id) {
+      w.maximized = !w.maximized
+    } else {
+      w.maximized = false
+    }
+  })
 }
 </script>
 
 <template>
-  <!-- 窗口区 -->
-  <div
-    v-for="win in windows"
-    :key="win.id"
-    class="window-box"
-    :style="{ left: win.left + '%', top: win.top + '%' }"
-  >
+  <div v-for="win in windows" :key="win.id" class="window-box-wrapper" :style="{ zIndex: windows.indexOf(win) + 1 }">
     <WindowBox
       :title="win.title"
       :component="win.component"
+      :left="win.left"
+      :top="win.top"
+      :maximized="win.maximized"
       @close="closeWindow(win.id)"
+      @toggle-maximize="toggleMaximize(win.id)"
       @mousedown.native.prevent="bringToFront(win.id)"
     />
   </div>
 
-  <!-- 底部菜单栏 -->
   <Menubar
     :clickedIndices="clickedIndices"
     @icon-click="toggleWindow"
     @icon-close="closeWindow"
   />
 </template>
-
 <style scoped>
-.window-box {
-  position: absolute; /* 绝对定位，支持 left 和 top 偏移 */
-  width: 80%;
-}
+	html,
+	body,
+	#app {
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+		background: url("https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/flowers.jpg")
+		  center center;
+		background-size: 400px;
+	}
 </style>

@@ -7,8 +7,14 @@ export const constantRoutes = [
     component: () => import('../../src/layout/Default.vue'),
    children: [
 	  { path: '', component: () => import('../../src/views/Home/Home.vue') },
-	  { path: '/article', component: () => import('../../src/views/Article/Index.vue') },
 	]
+  },
+  {
+    path: '/',
+    component: () => import('../../src/layout/Auth.vue'),
+   children: [
+  	  { path: '/login', component: () => import('../../src/views/Auth/Login.vue') },
+  	]
   }
 ]
 
