@@ -6,7 +6,7 @@
   >
     <div class="header" @mousedown.stop.prevent="startDrag">
       <div class="window-controls">
-        <span class="close" @click="$emit('close')"></span>
+        <span class="close" @click="handleClose"></span>
         <span class="minimize" @click="toggleMinimize"></span>
         <span class="maximize" @click="toggleMaximize"></span>
       </div>
@@ -38,6 +38,8 @@ const props = defineProps({
   title: String
 })
 
+const emit = defineEmits(['close'])
+
 const pos = ref({ x: 100, y: 100 })
 const width = ref(460)
 const height = ref(320)
@@ -53,6 +55,10 @@ const directions = [
   'top', 'bottom', 'left', 'right',
   'topleft', 'topright', 'bottomleft', 'bottomright'
 ]
+
+function handleClose() {
+  emit('close')
+}
 
 function toggleMinimize() {
   isMinimized.value = !isMinimized.value
@@ -80,7 +86,6 @@ function toggleMaximize() {
   }
 }
 
-// 拖动
 let startX = 0, startY = 0, dragging = false
 function startDrag(e) {
   if (isMaximized.value || isMinimized.value) return
@@ -98,7 +103,6 @@ function onDrag(e) {
   let newX = e.clientX - startX
   let newY = e.clientY - startY
 
-  // 支持半边隐藏：可拖出窗口一半宽度/高度
   const maxOverflowX = width.value * 0.5
   const maxOverflowY = height.value * 0.5
 
@@ -115,7 +119,6 @@ function stopDrag() {
   window.removeEventListener('mouseup', stopDrag)
 }
 
-// 缩放
 let resizing = false
 let resizeStartX = 0
 let resizeStartY = 0
@@ -239,7 +242,6 @@ onMounted(() => {
   background: white;
 }
 
-/* 缩放控制点样式 */
 .resize-handle {
   position: absolute;
   z-index: 10;

@@ -58,15 +58,11 @@ function closeWindow(id) {
   if (index !== undefined) {
     clickedIndices.value = clickedIndices.value.filter(i => i !== Number(index))
   }
-
   windows.value = windows.value.filter(w => w.id !== id)
 }
 </script>
 
 <template>
-  <!-- 顶部菜单栏 -->
-  <Menubar :clickedIndices="clickedIndices" @icon-click="toggleWindow" />
-
   <!-- 窗口区 -->
   <div v-for="win in windows" :key="win.id" class="window-box">
     <WindowBox
@@ -75,4 +71,11 @@ function closeWindow(id) {
       @close="closeWindow(win.id)"
     />
   </div>
+
+  <!-- 底部菜单栏 -->
+  <Menubar
+    :clickedIndices="clickedIndices"
+    @icon-click="toggleWindow"
+    @icon-close="closeWindow"
+  />
 </template>
