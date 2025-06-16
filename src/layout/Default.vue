@@ -10,7 +10,7 @@ let idCount = 0
 // 图标点击状态，用于显示小黑点
 const clickedIndices = ref([])
 
-// 页面映射：使用 defineAsyncComponent 明确静态路径（解决动态导入错误）
+// 页面映射，使用 defineAsyncComponent 明确静态路径（避免动态导入错误）
 const pageMap = {
   0: {
     title: '文章管理',
@@ -42,10 +42,17 @@ function toggleWindow(index) {
   if (existing) {
     closeWindow(existing.id)
   } else {
+    // 计算偏移，向左偏移 7% + 每个新窗口向右偏移 10%
+    const leftOffset = 7 + windows.value.length * 10
+    // 向下偏移 2% * 窗口数
+    const topOffset = windows.value.length * 5
+
     windows.value.push({
       id: ++idCount,
       title: page.title,
-      component: page.component
+      component: page.component,
+      left: leftOffset,
+      top: topOffset
     })
     if (!clickedIndices.value.includes(index)) {
       clickedIndices.value.push(index)
@@ -70,13 +77,18 @@ function bringToFront(id) {
   const index = windows.value.findIndex(w => w.id === id)
   if (index === -1) return
   const win = windows.value.splice(index, 1)[0]
-  windows.value.push(win) // 放到最后，渲染时层级最高
+  windows.value.push(win)
 }
 </script>
 
 <template>
   <!-- 窗口区 -->
-  <div v-for="win in windows" :key="win.id" class="window-box">
+  <div
+    v-for="win in windows"
+    :key="win.id"
+    class="window-box"
+    :style="{ left: win.left + '%', top: win.top + '%' }"
+  >
     <WindowBox
       :title="win.title"
       :component="win.component"
@@ -92,3 +104,10 @@ function bringToFront(id) {
     @icon-close="closeWindow"
   />
 </template>
+
+<style scoped>
+.window-box {
+  position: absolute; /* 绝对定位，支持 left 和 top 偏移 */
+  width: 80%;
+}
+</style>
