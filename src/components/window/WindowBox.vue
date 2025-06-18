@@ -201,7 +201,7 @@ watch(() => props.initialPos, (newVal) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  user-select: none;
+  user-select: text;
   transition: width 0.2s, height 0.2s;
 }
 

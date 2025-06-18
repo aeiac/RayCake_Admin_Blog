@@ -146,7 +146,7 @@ function handleClose(index) {
   align-items: flex-end;
   justify-content: center;
   flex-wrap: wrap;
-  user-select: none;
+/*  user-select: none; */
   padding: 1vh 1vw;
   gap: clamp(1vw, 2vw, 30px);
   max-width: 96vw;
