@@ -33,10 +33,16 @@ function updateWidth() {
 onMounted(() => {
   updateWidth()
   window.addEventListener('resize', updateWidth)
+
+  // 禁止页面滚动
+  document.body.style.overflow = 'hidden'
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateWidth)
+
+  // 恢复滚动
+  document.body.style.overflow = ''
 })
 
 function handleTreeClick(data) {
@@ -45,8 +51,8 @@ function handleTreeClick(data) {
 </script>
 
 <template>
-  <div class="mac-file-frame" style="height: 100vh;">
-    <el-container style="height: 100%">
+  <div class="mac-file-frame" >
+    <el-container >
       <el-aside :style="{ width: asideWidth }" class="tree-aside">
         <VerticalMenu
           :treeData="treeData"
