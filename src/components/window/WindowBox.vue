@@ -1,308 +1,380 @@
 <template>
-  <div
-    class="window"
-    :class="{ maximized: isMaximized }"
-    :style="{ top: pos.y + 'px', left: pos.x + 'px', width: width + 'px', height: height + 'px' }"
-  >
-    <div
-      class="header"
-      @mousedown.stop.prevent="startDrag"
-      @dblclick="onHeaderDblClick"
-    >
-      <div class="window-controls">
-        <span class="close" @click="handleClose"></span>
-        <span class="minimize" @click="toggleMinimize"></span>
-        <span class="maximize" @click="toggleMaximize"></span>
-      </div>
-      <div class="title">{{ title }}</div>
-      <div style="width: 60px;"></div>
-    </div>
+	<div class="window" :class="{ maximized: isMaximized }" :style="{
+      top: pos.y + 'px',
+      left: pos.x + 'px',
+      width: width + 'px',
+      height: height + 'px',
+      zIndex: zIndex
+    }" @mousedown="handleWindowMouseDown">
+		<div class="header" @mousedown.stop="handleHeaderMouseDown" @dblclick="onHeaderDblClick">
+			<div class="window-controls">
+				<span class="close" @click="handleClose"></span>
+				<span class="minimize" @click="toggleMinimize"></span>
+				<span class="maximize" @click="toggleMaximize"></span>
+			</div>
+			<div class="title">{{ title }}</div>
+			<div style="width: 60px;"></div>
+		</div>
 
-    <div class="content" v-show="!isMinimized">
-      <Suspense>
-        <component :is="component" />
-      </Suspense>
-    </div>
+		<div class="content" v-show="!isMinimized">
+			<Suspense>
+				<component :is="component" />
+			</Suspense>
+		</div>
 
-    <div
-      v-for="dir in directions"
-      :key="dir"
-      class="resize-handle"
-      :class="dir"
-      @mousedown.prevent="startResize($event, dir)"
-    />
-  </div>
+		<div v-for="dir in directions" :key="dir" class="resize-handle" :class="dir"
+			@mousedown.prevent="startResize($event, dir)" />
+	</div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+	import {
+		ref,
+		onMounted,
+		watch
+	} from 'vue'
 
-const props = defineProps({
-  component: Object,
-  title: String,
-  initialPos: {
-    type: Object,
-    default: () => ({ x: 100, y: 100 })
-  }
-})
+	const props = defineProps({
+		component: Object,
+		title: String,
+		left: {
+			type: Number,
+			default: 100
+		},
+		top: {
+			type: Number,
+			default: 100
+		},
+		maximized: {
+			type: Boolean,
+			default: false
+		},
+		zIndex: {
+			type: Number,
+			default: 1
+		}
+	})
 
-const emit = defineEmits(['close'])
+	const emit = defineEmits(['close', 'toggle-maximize', 'bring-to-front'])
 
-const pos = ref({ x: 100, y: 100 })
-const width = ref(460)
-const height = ref(320)
+	const pos = ref({
+		x: props.left,
+		y: props.top
+	})
+	const width = ref(460)
+	const height = ref(320)
+	const zIndex = ref(props.zIndex)
 
-const isMinimized = ref(false)
-const isMaximized = ref(false)
+	const isMinimized = ref(false)
+	const isMaximized = ref(props.maximized)
 
-let savedPos = null
-let savedWidth = null
-let savedHeight = null
+	let savedPos = null
+	let savedWidth = null
+	let savedHeight = null
 
-const directions = [
-  'top', 'bottom', 'left', 'right',
-  'topleft', 'topright', 'bottomleft', 'bottomright'
-]
+	const directions = [
+		'top', 'bottom', 'left', 'right',
+		'topleft', 'topright', 'bottomleft', 'bottomright'
+	]
 
-function handleClose() {
-  emit('close')
-}
+	function handleClose() {
+		emit('close')
+	}
 
-function toggleMinimize() {
-  isMinimized.value = !isMinimized.value
-}
+	function toggleMinimize() {
+		isMinimized.value = !isMinimized.value
+	}
 
-function toggleMaximize() {
-  const vw = window.innerWidth
-  const vh = window.innerHeight
+	function toggleMaximize() {
+		const vw = window.innerWidth
+		const vh = window.innerHeight
 
-  if (!isMaximized.value) {
-    savedPos = { ...pos.value }
-    savedWidth = width.value
-    savedHeight = height.value
-    pos.value.x = 0
-    pos.value.y = 0
-    width.value = vw
-    height.value = vh
-    isMaximized.value = true
-    isMinimized.value = false
-  } else {
-    pos.value = savedPos
-    width.value = savedWidth
-    height.value = savedHeight
-    isMaximized.value = false
-  }
-}
+		if (!isMaximized.value) {
+			savedPos = {
+				...pos.value
+			}
+			savedWidth = width.value
+			savedHeight = height.value
+			pos.value.x = 0
+			pos.value.y = 0
+			width.value = vw
+			height.value = vh
+			isMaximized.value = true
+			isMinimized.value = false
+		} else {
+			pos.value = savedPos
+			width.value = savedWidth
+			height.value = savedHeight
+			isMaximized.value = false
+		}
 
-// 双击标题栏最大化或还原
-function onHeaderDblClick() {
-  if (!isMinimized.value) toggleMaximize()
-}
+		emit('toggle-maximize')
+	}
 
-let startX = 0, startY = 0, dragging = false
-function startDrag(e) {
-  if (isMaximized.value || isMinimized.value) return
-  startX = e.clientX - pos.value.x
-  startY = e.clientY - pos.value.y
-  dragging = true
-  window.addEventListener('mousemove', onDrag)
-  window.addEventListener('mouseup', stopDrag)
-}
+	function onHeaderDblClick() {
+		if (!isMinimized.value) toggleMaximize()
+	}
 
-function onDrag(e) {
-  if (!dragging) return
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  let newX = e.clientX - startX
-  let newY = e.clientY - startY
+	function handleHeaderMouseDown(e) {
+		e.preventDefault()
+		startDrag(e)
+		emit('bring-to-front')
+	}
 
-  const maxOverflowX = width.value * 0.5
-  const maxOverflowY = height.value * 0.5
+	function handleWindowMouseDown(e) {
+		// 只有点击窗口非内容区域时才触发置顶
+		if (e.target === e.currentTarget || e.target.closest('.header')) {
+			emit('bring-to-front')
+		}
+	}
 
-  newX = Math.max(-maxOverflowX, Math.min(newX, vw - width.value + maxOverflowX))
-  newY = Math.max(-maxOverflowY, Math.min(newY, vh - height.value + maxOverflowY))
+	let startX = 0,
+		startY = 0,
+		dragging = false
 
-  pos.value.x = newX
-  pos.value.y = newY
-}
+	function startDrag(e) {
+		if (isMaximized.value || isMinimized.value) return
+		startX = e.clientX - pos.value.x
+		startY = e.clientY - pos.value.y
+		dragging = true
+		window.addEventListener('mousemove', onDrag)
+		window.addEventListener('mouseup', stopDrag)
+	}
 
-function stopDrag() {
-  dragging = false
-  window.removeEventListener('mousemove', onDrag)
-  window.removeEventListener('mouseup', stopDrag)
-}
+	function onDrag(e) {
+		if (!dragging) return
+		const vw = window.innerWidth
+		const vh = window.innerHeight
+		let newX = e.clientX - startX
+		let newY = e.clientY - startY
 
-let resizing = false
-let resizeStartX = 0
-let resizeStartY = 0
-let resizeDir = ''
-function startResize(e, dir) {
-  if (isMaximized.value) return
-  resizing = true
-  resizeStartX = e.clientX
-  resizeStartY = e.clientY
-  savedWidth = width.value
-  savedHeight = height.value
-  savedPos = { ...pos.value }
-  resizeDir = dir
-  window.addEventListener('mousemove', onResize)
-  window.addEventListener('mouseup', stopResize)
-}
+		const maxOverflowX = width.value * 0.5
+		const maxOverflowY = height.value * 0.5
 
-function onResize(e) {
-  if (!resizing) return
-  const dx = e.clientX - resizeStartX
-  const dy = e.clientY - resizeStartY
+		newX = Math.max(-maxOverflowX, Math.min(newX, vw - width.value + maxOverflowX))
+		newY = Math.max(-maxOverflowY, Math.min(newY, vh - height.value + maxOverflowY))
 
-  if (resizeDir.includes('right')) {
-    width.value = Math.max(300, savedWidth + dx)
-  }
-  if (resizeDir.includes('left')) {
-    const newWidth = Math.max(300, savedWidth - dx)
-    width.value = newWidth
-    pos.value.x = savedPos.x + (savedWidth - newWidth)
-  }
-  if (resizeDir.includes('bottom')) {
-    height.value = Math.max(200, savedHeight + dy)
-  }
-  if (resizeDir.includes('top')) {
-    const newHeight = Math.max(200, savedHeight - dy)
-    height.value = newHeight
-    pos.value.y = savedPos.y + (savedHeight - newHeight)
-  }
-}
+		pos.value.x = newX
+		pos.value.y = newY
+	}
 
-function stopResize() {
-  resizing = false
-  window.removeEventListener('mousemove', onResize)
-  window.removeEventListener('mouseup', stopResize)
-}
+	function stopDrag() {
+		dragging = false
+		window.removeEventListener('mousemove', onDrag)
+		window.removeEventListener('mouseup', stopDrag)
+	}
 
-onMounted(() => {
-  pos.value = { ...props.initialPos }
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  width.value = vw * 0.5
-  height.value = vh * 0.5
-})
+	let resizing = false
+	let resizeStartX = 0
+	let resizeStartY = 0
+	let resizeDir = ''
 
-watch(() => props.initialPos, (newVal) => {
-  pos.value = { ...newVal }
-})
+	function startResize(e, dir) {
+		if (isMaximized.value) return
+		resizing = true
+		resizeStartX = e.clientX
+		resizeStartY = e.clientY
+		savedWidth = width.value
+		savedHeight = height.value
+		savedPos = {
+			...pos.value
+		}
+		resizeDir = dir
+		window.addEventListener('mousemove', onResize)
+		window.addEventListener('mouseup', stopResize)
+	}
+
+	function onResize(e) {
+		if (!resizing) return
+		const dx = e.clientX - resizeStartX
+		const dy = e.clientY - resizeStartY
+
+		if (resizeDir.includes('right')) {
+			width.value = Math.max(300, savedWidth + dx)
+		}
+		if (resizeDir.includes('left')) {
+			const newWidth = Math.max(300, savedWidth - dx)
+			width.value = newWidth
+			pos.value.x = savedPos.x + (savedWidth - newWidth)
+		}
+		if (resizeDir.includes('bottom')) {
+			height.value = Math.max(200, savedHeight + dy)
+		}
+		if (resizeDir.includes('top')) {
+			const newHeight = Math.max(200, savedHeight - dy)
+			height.value = newHeight
+			pos.value.y = savedPos.y + (savedHeight - newHeight)
+		}
+	}
+
+	function stopResize() {
+		resizing = false
+		window.removeEventListener('mousemove', onResize)
+		window.removeEventListener('mouseup', stopResize)
+	}
+
+	onMounted(() => {
+		const vw = window.innerWidth
+		const vh = window.innerHeight
+		// 窗口初始化大小
+		width.value = vw * 0.9
+		height.value = vh * 0.8
+	})
+
+	watch(() => props.maximized, (newVal) => {
+		isMaximized.value = newVal
+	})
+
+	watch(() => props.left, (newVal) => {
+		pos.value.x = newVal
+	})
+
+	watch(() => props.top, (newVal) => {
+		pos.value.y = newVal
+	})
+
+	watch(() => props.zIndex, (newVal) => {
+		zIndex.value = newVal
+	})
 </script>
 
 <style scoped>
-.window {
-  position: absolute;
-  background: rgba(255 255 255 / 0.9);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-radius: 14px;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.15);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  user-select: text;
-  transition: width 0.2s, height 0.2s;
-}
+	.window {
+		position: absolute;
+		background: rgba(255 255 255 / 0.9);
+		backdrop-filter: saturate(180%) blur(20px);
+		border-radius: 14px;
+		box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		user-select: text;
+		transition: width 0.2s, height 0.2s;
+	}
 
-.window.maximized {
-  border-radius: 0 !important;
-}
+	.window.maximized {
+		border-radius: 0 !important;
+	}
 
-.header {
-  height: 36px;
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  background: rgba(242 242 247 / 0.9);
-  border-bottom: 1px solid rgba(0,0,0,0.1);
-  cursor: grab;
-}
+	.header {
+		height: 36px;
+		display: flex;
+		align-items: center;
+		padding: 0 14px;
+		background: rgba(242 242 247 / 0.9);
+		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+		cursor: grab;
+		user-select: none;
+	}
 
-.window-controls {
-  display: flex;
-  gap: 8px;
-  width: 60px;
-}
+	.window-controls {
+		display: flex;
+		gap: 8px;
+		width: 60px;
+	}
 
-.window-controls span {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-}
+	.window-controls span {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.25);
+		cursor: pointer;
+	}
 
-.window-controls .close {
-  background: #ff5f56;
-}
-.window-controls .minimize {
-  background: #ffbd2e;
-}
-.window-controls .maximize {
-  background: #27c93f;
-}
+	.window-controls .close {
+		background: #ff5f56;
+	}
 
-.title {
-  flex: 1;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: #3c3c4399;
-  pointer-events: none;
-}
+	.window-controls .minimize {
+		background: #ffbd2e;
+	}
 
-.content {
-  flex: 1;
-  overflow: auto;
-  background: white;
-}
+	.window-controls .maximize {
+		background: #27c93f;
+	}
 
-.resize-handle {
-  position: absolute;
-  z-index: 10;
-}
+	.title {
+		flex: 1;
+		text-align: center;
+		font-size: 14px;
+		font-weight: 500;
+		color: #3c3c4399;
+		pointer-events: none;
+	}
 
-.top, .bottom {
-  height: 6px;
-  left: 0;
-  right: 0;
-  cursor: ns-resize;
-}
-.top { top: -3px; }
-.bottom { bottom: -3px; }
+	.content {
+		flex: 1;
+		overflow: auto;
+		background: white;
+		user-select: text;
+	}
 
-.left, .right {
-  width: 6px;
-  top: 0;
-  bottom: 0;
-  cursor: ew-resize;
-}
-.left { left: -3px; }
-.right { right: -3px; }
+	.resize-handle {
+		position: absolute;
+		z-index: 10;
+	}
 
-.topleft, .topright, .bottomleft, .bottomright {
-  width: 10px;
-  height: 10px;
-}
-.topleft {
-  top: -5px;
-  left: -5px;
-  cursor: nwse-resize;
-}
-.topright {
-  top: -5px;
-  right: -5px;
-  cursor: nesw-resize;
-}
-.bottomleft {
-  bottom: -5px;
-  left: -5px;
-  cursor: nesw-resize;
-}
-.bottomright {
-  bottom: -5px;
-  right: -5px;
-  cursor: nwse-resize;
-}
+	.top,
+	.bottom {
+		height: 6px;
+		left: 0;
+		right: 0;
+		cursor: ns-resize;
+	}
+
+	.top {
+		top: -3px;
+	}
+
+	.bottom {
+		bottom: -3px;
+	}
+
+	.left,
+	.right {
+		width: 6px;
+		top: 0;
+		bottom: 0;
+		cursor: ew-resize;
+	}
+
+	.left {
+		left: -3px;
+	}
+
+	.right {
+		right: -3px;
+	}
+
+	.topleft,
+	.topright,
+	.bottomleft,
+	.bottomright {
+		width: 10px;
+		height: 10px;
+	}
+
+	.topleft {
+		top: -5px;
+		left: -5px;
+		cursor: nwse-resize;
+	}
+
+	.topright {
+		top: -5px;
+		right: -5px;
+		cursor: nesw-resize;
+	}
+
+	.bottomleft {
+		bottom: -5px;
+		left: -5px;
+		cursor: nesw-resize;
+	}
+
+	.bottomright {
+		bottom: -5px;
+		right: -5px;
+		cursor: nwse-resize;
+	}
 </style>

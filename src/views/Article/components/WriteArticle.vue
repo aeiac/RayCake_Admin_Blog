@@ -107,8 +107,4 @@ function handleCreated(editor) {
 </script>
 
 <style>
-.editor-container,
-.editor-container * {
-  user-select: text !important;
-}
 </style>
