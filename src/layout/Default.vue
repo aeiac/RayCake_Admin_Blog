@@ -16,8 +16,8 @@
 			component: defineAsyncComponent(() => import('../views/Article/Index.vue'))
 		},
 		1: {
-			title: 'Xx管理',
-			component: defineAsyncComponent(() => import('../views/Article/Index.vue'))
+			title: '系统管理',
+			component: defineAsyncComponent(() => import('../views/System/Index.vue'))
 		}
 	}
 
