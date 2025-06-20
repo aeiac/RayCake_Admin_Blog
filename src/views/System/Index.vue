@@ -8,8 +8,8 @@ const treeData = ref([
     component: defineAsyncComponent(() => import('./components/Blacklist.vue'))
   },
   {
-    label: '生成应用',
-    component: defineAsyncComponent(() => import('./components/Blacklist.vue'))
+    label: '游客列表',
+    component: defineAsyncComponent(() => import('./components/TouristList.vue'))
   }
 ])
 
