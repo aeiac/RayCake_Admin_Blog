@@ -9,29 +9,45 @@
 			<button @click="handleLogin" class="login-btn">登录</button>
 		</div>
 	</div>
+
 </template>
 
 <script setup>
 	import {
 		ref
 	} from 'vue'
+	import {
+		login
+	} from '../../api/auth.js'
+	import {
+		ElMessage
+	} from 'element-plus'
+	import { useRouter } from 'vue-router'
 
 	const username = ref('')
 	const password = ref('')
+	const router = useRouter()
 
-	function handleLogin() {
+	async function handleLogin() {
 		if (!username.value || !password.value) {
-			alert('请输入用户名和密码')
+			ElMessage.warning('请输入用户名和密码')
 			return
 		}
-		alert(`欢迎你，${username.value}`)
+		const result = await login(username.value, password.value)
+		if(result.code!=200){
+			ElMessage.error(result.msg)
+			return
+		}
+		localStorage.setItem('token', result.data.token)
+		ElMessage.success('登录成功！')
+		router.push('/index')
 	}
 </script>
 
 <style scoped>
 	.mac-login {
 		height: 100vh;
-		background: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1950&q=80') no-repeat center center;
+		background: url('../../../public/login-back.jpg') no-repeat center center;
 		background-size: cover;
 		display: flex;
 		justify-content: center;
