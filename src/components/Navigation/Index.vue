@@ -1,13 +1,13 @@
 <template>
   <div class="mac-navbar">
-    <!-- 左侧应用图标 -->
+    <!-- 左侧应用图标 + 用户信息 -->
     <div class="mac-navbar-left">
       <img
-        src="https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/finder.png"
-        alt="App Icon"
+        :src="user.avatar || defaultAvatar"
+        alt="User Avatar"
         class="app-icon"
       />
-      <span class="app-name">Finder</span>
+      <span v-if="user.nickname" class="user-name">{{ user.nickname }}</span>
     </div>
 
     <!-- 中间菜单 -->
@@ -25,10 +25,7 @@
     <div class="mac-navbar-right">
       <i class="status-icon">🔊</i>
       <i class="status-icon">🔋</i>
-
-      <!-- 退出按钮 -->
       <i class="status-icon" @click="handleLogout" title="退出">✖</i>
-
       <span class="time">{{ currentTime }}</span>
     </div>
   </div>
@@ -43,20 +40,32 @@ import { out } from '../../api/auth'
 
 const router = useRouter()
 const currentTime = ref(new Date().toLocaleTimeString())
+const user = ref({})
+const defaultAvatar = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
 
-let timer
+// 加载本地用户信息
 onMounted(() => {
+  const info = localStorage.getItem('userinfo')
+  if (info) {
+    try {
+      user.value = JSON.parse(info)
+    } catch (e) {
+      console.error('userinfo 解析失败:', e)
+    }
+  }
+
   timer = setInterval(() => {
     currentTime.value = new Date().toLocaleTimeString()
   }, 1000)
 })
+
 onUnmounted(() => {
   clearInterval(timer)
 })
 
-/**
- * 退出函数（带 Element Plus Loading）
- */
+let timer
+
+// 退出函数（带 Element Plus Loading）
 const handleLogout = async () => {
   const loading = ElLoading.service({
     lock: true,
@@ -67,7 +76,9 @@ const handleLogout = async () => {
   try {
     await out()
     localStorage.removeItem('token')
-    await new Promise(resolve => setTimeout(resolve, 800)) // 模拟延时以展示动画
+    localStorage.removeItem('userinfo')
+    await new Promise(resolve => setTimeout(resolve, 800))
+    ElMessage.success('退出成功')
     router.push('/login')
   } catch (error) {
     console.error('退出失败:', error)
@@ -102,14 +113,18 @@ const handleLogout = async () => {
 }
 
 .app-icon {
-  width: 18px;
-  height: 18px;
+  width: 25px;
+  height: 25px;
   margin-right: 6px;
-  border-radius: 4px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-.app-name {
-  font-weight: 500;
+.user-name {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #fff;
+  opacity: 0.9;
 }
 
 .menu-list {

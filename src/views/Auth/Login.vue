@@ -52,8 +52,9 @@ async function handleLogin() {
       ElMessage.error(result.msg || '登录失败')
       return
     }
-
     localStorage.setItem('token', result.data.token)
+    localStorage.setItem('userinfo', JSON.stringify(result.data))
+	
     ElMessage.success('登录成功！')
     router.push('/index')
   } catch (err) {
