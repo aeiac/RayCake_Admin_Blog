@@ -3,6 +3,7 @@
 		ref,
 		defineAsyncComponent
 	} from 'vue'
+	import Bar from '../components/Navigation/Index.vue'
 	import Menubar from '../components/menubar/Index.vue'
 	import WindowBox from '../components/window/WindowBox.vue'
 
@@ -87,6 +88,10 @@
 </script>
 
 <template>
+	<div>
+		<Bar></Bar>
+	</div>
+
 	<div v-for="win in windows" :key="win.id" class="window-box-wrapper" :style="{ zIndex: windows.indexOf(win) + 1 }">
 		<WindowBox :title="win.title" :component="win.component" :left="win.left" :top="win.top"
 			:maximized="win.maximized" @close="closeWindow(win.id)" @toggle-maximize="toggleMaximize(win.id)"
@@ -103,9 +108,10 @@
 		margin: 0;
 		padding: 0;
 		overflow: hidden;
-		  background: url('../../public/login-back.jpg') no-repeat center center fixed;
-		  background-size: cover;
-		  background-color: #0d1117; /* 背景图加载前的底色 */
-		
+		background: url('../../public/login-back.jpg') no-repeat center center fixed;
+		background-size: cover;
+		background-color: #0d1117;
+		/* 背景图加载前的底色 */
+
 	}
 </style>
