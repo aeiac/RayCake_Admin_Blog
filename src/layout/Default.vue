@@ -103,7 +103,9 @@
 		margin: 0;
 		padding: 0;
 		overflow: hidden;
-		background: url("https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/flowers.jpg") center center;
-		background-size: 400px;
+		  background: url('../../public/login-back.jpg') no-repeat center center fixed;
+		  background-size: cover;
+		  background-color: #0d1117; /* 背景图加载前的底色 */
+		
 	}
 </style>
