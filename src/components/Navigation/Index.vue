@@ -2,7 +2,11 @@
   <div class="mac-navbar">
     <!-- 左侧应用图标 -->
     <div class="mac-navbar-left">
-      <img src="https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/finder.png" alt="App Icon" class="app-icon" />
+      <img
+        src="https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/finder.png"
+        alt="App Icon"
+        class="app-icon"
+      />
       <span class="app-name">Finder</span>
     </div>
 
@@ -21,7 +25,10 @@
     <div class="mac-navbar-right">
       <i class="status-icon">🔊</i>
       <i class="status-icon">🔋</i>
-      <i class="status-icon">👤</i>
+
+      <!-- 退出按钮 -->
+      <i class="status-icon" @click="handleLogout" title="退出">✖</i>
+
       <span class="time">{{ currentTime }}</span>
     </div>
   </div>
@@ -29,7 +36,12 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElLoading, ElMessage } from 'element-plus'
+import 'element-plus/theme-chalk/el-loading.css'
+import { out } from '../../api/auth'
 
+const router = useRouter()
 const currentTime = ref(new Date().toLocaleTimeString())
 
 let timer
@@ -41,8 +53,30 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(timer)
 })
-</script>
 
+/**
+ * 退出函数（带 Element Plus Loading）
+ */
+const handleLogout = async () => {
+  const loading = ElLoading.service({
+    lock: true,
+    text: '正在退出，请稍候...',
+    background: 'rgba(0, 0, 0, 0.4)',
+  })
+
+  try {
+    await out()
+    localStorage.removeItem('token')
+    await new Promise(resolve => setTimeout(resolve, 800)) // 模拟延时以展示动画
+    router.push('/login')
+  } catch (error) {
+    console.error('退出失败:', error)
+    ElMessage.error('退出失败，请稍后重试')
+  } finally {
+    loading.close()
+  }
+}
+</script>
 
 <style scoped>
 .mac-navbar {
@@ -51,7 +85,7 @@ onUnmounted(() => {
   align-items: center;
   height: 32px;
   padding: 0 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(0 0 0 / 10%);
   backdrop-filter: blur(15px) saturate(180%);
   -webkit-backdrop-filter: blur(15px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -100,6 +134,10 @@ onUnmounted(() => {
 .status-icon {
   margin-left: 10px;
   cursor: pointer;
+}
+
+.status-icon:hover {
+  opacity: 0.8;
 }
 
 .time {
