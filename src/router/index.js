@@ -15,7 +15,7 @@ export const constantRoutes = [{
 		component: () => import('../../src/layout/Default.vue'),
 		children: [{
 			path: '',
-			component: () => import('../../src/views/Home/Home.vue')
+			component: () => import('../../src/views/Home/Index.vue')
 		}, ]
 	},
 	{

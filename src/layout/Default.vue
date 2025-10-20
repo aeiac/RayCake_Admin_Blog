@@ -6,6 +6,11 @@
 	import Bar from '../components/Navigation/Index.vue'
 	import Menubar from '../components/menubar/Index.vue'
 	import WindowBox from '../components/window/WindowBox.vue'
+	
+	
+	// 导航基础模块	
+	import Info from '../views/Home/Index.vue'
+	
 
 	const windows = ref([])
 	let idCount = 0
@@ -85,11 +90,28 @@
 			}
 		})
 	}
+	function openUserWindow() {
+	  // 检查窗口是否已经打开
+	  const existing = windows.value.find(w => w.title === '设置')
+	  if (existing) {
+	    bringToFront(existing.id)
+	  } else {
+	    windows.value.push({
+	      id: ++idCount,
+	      title: '设置',
+	      component: Info, // 使用 Info.vue
+	      left: 100,        // 初始左偏移
+	      top: 100,         // 初始上偏移
+	      maximized: false
+	    })
+	  }
+	}
+
 </script>
 
 <template>
 	<div>
-		<Bar></Bar>
+		<Bar @avatar-click="openUserWindow" />
 	</div>
 
 	<div v-for="win in windows" :key="win.id" class="window-box-wrapper" :style="{ zIndex: windows.indexOf(win) + 1 }">

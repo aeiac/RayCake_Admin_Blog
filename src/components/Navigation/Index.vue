@@ -2,24 +2,24 @@
   <div class="mac-navbar">
     <!-- 左侧应用图标 + 用户信息 -->
     <div class="mac-navbar-left">
-      <img
-        :src="user.avatar || defaultAvatar"
-        alt="User Avatar"
-        class="app-icon"
-      />
+		<img
+		  :src="user.avatar || defaultAvatar"
+		  alt="User Avatar"
+		  class="app-icon"
+		  @click="$emit('avatar-click')"
+		/>
       <span v-if="user.nickname" class="user-name">{{ user.nickname }}</span>
+	  <ul class="menu-list">
+	    <li class="menu-item">文件</li>
+	    <li class="menu-item">编辑</li>
+	    <li class="menu-item">显示</li>
+	    <li class="menu-item">窗口</li>
+	    <li class="menu-item">帮助</li>	
+	  </ul>
     </div>
 
     <!-- 中间菜单 -->
-    <div class="mac-navbar-center">
-      <ul class="menu-list">
-        <li class="menu-item">文件</li>
-        <li class="menu-item">编辑</li>
-        <li class="menu-item">显示</li>
-        <li class="menu-item">窗口</li>
-        <li class="menu-item">帮助</li>
-      </ul>
-    </div>
+    <div class="mac-navbar-center"></div>
 
     <!-- 右侧状态图标 -->
     <div class="mac-navbar-right">
@@ -35,6 +35,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElLoading, ElMessage } from 'element-plus'
+
 import 'element-plus/theme-chalk/el-loading.css'
 import { out } from '../../api/auth'
 
