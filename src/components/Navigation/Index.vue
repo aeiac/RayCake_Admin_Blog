@@ -10,10 +10,10 @@
 		/>
       <span v-if="user.nickname" class="user-name">{{ user.nickname }}</span>
 	  <ul class="menu-list">
-	    <li class="menu-item">文件</li>
-	    <li class="menu-item">编辑</li>
-	    <li class="menu-item">显示</li>
-	    <li class="menu-item">窗口</li>
+	    <li class="menu-item">设置</li>
+	    <li class="menu-item">日志</li>
+	    <li class="menu-item">数据</li>
+	    <li class="menu-item">博客</li>
 	    <li class="menu-item">帮助</li>	
 	  </ul>
     </div>
